@@ -1,3 +1,6 @@
+mod tables;
+mod wrap;
+
 #[cfg(test)]
 mod tests {
     #[test]
