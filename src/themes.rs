@@ -1,4 +1,10 @@
+//! Determines the look of the table.
+//! 
+//! You use one of the already-implemented themes, or even 
+//! create your own to customize the look of your table even 
+//! further.
 
+/// How themes will be represented.
 pub struct Theme {
     // top row of table
     pub TOP_LEFT_CORNER: char,
@@ -17,6 +23,9 @@ pub struct Theme {
     pub VERTICAL_BORDER: char,
 }
 
+/// This is where/how the pre-implemented `Theme`s are defined.
+/// They are accessed by calling the corresponding function, which
+/// returns the desired `Theme` to be used.
 impl Theme {
     pub fn heavy() -> Theme {
         Theme {

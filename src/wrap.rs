@@ -1,18 +1,44 @@
+//! Handles the wrapping needed for the tables.
+//! 
+//! The strings in the table need to be wrapped in order to fit 
+//! nicely into columns. This involves inserting line breaks and 
+//! padding with spaces, for instance.
 
+/// Can be thought of as the cells of the table, though in this context 
+/// it is slightly more general.
+/// 
+/// Practically speaking, this should be constructed from a method, such 
+/// as `wrap_str()`.
 #[derive(Debug)]
 pub struct WrappedCell {
+    /// How many characters should be displayed before inserting a 
+    /// line break
     pub width: usize,
     height: usize,
+    /// The string that is being wrapped, stored here in already-wrapped form, 
+    /// i.e. with line breaks, space padding, etc.
     pub content: String,
 }
 
 impl WrappedCell {
-    // Break a string up into multiple lines and pad it appropriately
-    // with spaces
-    // Parameters:
-    // w: how long you want the WrappedCell to be (where to split)
-    // s: what you want to put in a WrappedCell
-    // Returns: a WrappedCell with content s and width w
+    /// Break a string up into multiple lines and pad it appropriately
+    /// with spaces. Can return an appropriate `WrappedCell`.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `w` - how long you want the WrappedCell to be (where to split)
+    /// * `s` - what you want to put in a WrappedCell
+    /// Returns: a WrappedCell with content s and width w
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use tables::wrap;
+    /// 
+    /// // The resulting content  field will be:
+    /// // "Mary \nhad a\n litt\nle la\nb!   "
+    /// let wc1: WrappedCell = wrap_str(5, "Mary had a little lamb!").unwrap();
+    /// ```
     pub fn wrap_str(w: usize, s: &str) -> Result<WrappedCell,&'static str> {
         // edge case
         if w <= 0 {
@@ -49,20 +75,24 @@ impl WrappedCell {
         })
     }
 
-    // Given a row (vector) of WrappedCell(s), pad each appropriately
-    // so that they are printed evenly even if they may have different
-    // lengths. I.e., pad each cell in the row according to the size of
-    // the largest cell 
-    pub fn pad_row(hs: Vec<WrappedCell>) -> Vec<WrappedCell> {
+    /// Given a row (vector) of WrappedCell(s), pad each appropriately
+    /// so that they are printed evenly even if they may have different
+    /// lengths. I.e., pad each cell in the row according to the size of
+    /// the largest cell.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `row` - represented by a `Vec` of `WrappedCell`s
+    pub fn pad_row(row: Vec<WrappedCell>) -> Vec<WrappedCell> {
         let mut max_height = 0;
-        for h in &hs {
+        for h in &row {
             if h.height > max_height {
                 max_height = h.height;
             }
         }
 
         let mut formatted = Vec::new();
-        for h in &hs {
+        for h in &row {
             let width = h.width;
             let mut content = h.content.clone();
             if h.height < max_height {

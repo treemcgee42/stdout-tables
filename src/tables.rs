@@ -1,6 +1,9 @@
+//! Table-related structures and operations
+
 use crate::wrap;
 use crate::themes;
 
+/// The representation of a table
 #[derive(Debug)]
 pub struct Table {
     headers: Vec<wrap::WrappedCell>,
@@ -8,6 +11,11 @@ pub struct Table {
 }
 
 impl Table {
+    /// Display the `Table` as a table by printing to `stdout`.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `theme` - the `Theme` to use when drawing the table
     pub fn draw(&self, theme: themes::Theme) {
         let ws = &self.headers.iter().map(|wcell| wcell.width).collect::<Vec<_>>();
 
@@ -92,10 +100,39 @@ impl Table {
         )
     }
 
-    pub fn make(hs: Vec<(Option<usize>,&str)>,data: Vec<Vec<&str>>) -> Table {
+    /// A way to create a table from `&str`s
+    /// 
+    /// # Arguments
+    /// 
+    /// * `headers` - the labels for the columns of the desired `Table`. The 
+    /// first item in the tuple is the width the column should be, the second 
+    /// item is the column label. If the width provided was `None`, then the 
+    /// width of the column will be the length of the length of the column 
+    /// label.
+    /// * `data` - each sub-`Vec` is a row, ordered by which column they should 
+    /// appear under.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use stdout-tables::tables;
+    /// 
+    /// let t: Table = Table::make(
+    ///     vec![
+    ///         (None, "first column"), 
+    ///         (Some(7), "second column"),
+    /// `       (Some(10), "this is a third column")
+    ///     ],
+    ///     vec![
+    ///         "first entry", "second entry", "third entry",
+    ///         "first-first entry", "second-second entry", "third-third entry"
+    ///     ]
+    /// );
+    /// ```
+    pub fn make(headers: Vec<(Option<usize>,&str)>,data: Vec<Vec<&str>>) -> Table {
         let mut pre_headers = Vec::new();
 
-        for h in &hs {
+        for h in &headers {
             let mut w = 0;
             match h.0 {
                 None => w = h.1.len(),
