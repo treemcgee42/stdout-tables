@@ -37,9 +37,10 @@ impl WrappedCell {
     /// 
     /// // The resulting content  field will be:
     /// // "Mary \nhad a\n litt\nle la\nb!   "
-    /// let wc1: WrappedCell = wrap_str(5, "Mary had a little lamb!").unwrap();
+    /// let wc1: WrappedCell = wrap_str(5, String::from("Mary had a little lamb!"))
+    ///     .unwrap();
     /// ```
-    pub fn wrap_str(w: usize, s: &str) -> Result<WrappedCell,&'static str> {
+    pub fn wrap_str(w: usize, s: String) -> Result<WrappedCell,&'static str> {
         // edge case
         if w <= 0 {
             return Err("The width you gave was invalid.");
@@ -120,13 +121,13 @@ impl WrappedCell {
 fn wrap_str_test() {
     // perfect width alignment (no padding necessary)
     assert_eq!(
-        WrappedCell::wrap_str(9, "happy boy").unwrap().content,
+        WrappedCell::wrap_str(9, String::from("happy boy")).unwrap().content,
         String::from("happy boy")
     );
 
     // needs some padding at the end
     assert_eq!(
-        WrappedCell::wrap_str(10, "Mary had a little lamb!").unwrap().content,
+        WrappedCell::wrap_str(10, String::from("Mary had a little lamb!")).unwrap().content,
         String::from(
             "Mary had a\
             \n little la\

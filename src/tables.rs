@@ -121,7 +121,7 @@ impl Table {
     ///     vec![
     ///         (None, "first column"), 
     ///         (Some(7), "second column"),
-    /// `       (Some(10), "this is a third column")
+    ///         (Some(10), "this is a third column")
     ///     ],
     ///     vec![
     ///         "first entry", "second entry", "third entry",
@@ -129,7 +129,7 @@ impl Table {
     ///     ]
     /// );
     /// ```
-    pub fn make(headers: Vec<(Option<usize>,&str)>,data: Vec<Vec<&str>>) -> Table {
+    pub fn make(headers: Vec<(Option<usize>,String)>,data: Vec<Vec<String>>) -> Table {
         let mut pre_headers = Vec::new();
 
         for h in &headers {
@@ -139,7 +139,7 @@ impl Table {
                 Some(n) => w = n,
             }
 
-            pre_headers.push(wrap::WrappedCell::wrap_str(w,h.1).unwrap());
+            pre_headers.push(wrap::WrappedCell::wrap_str(w,h.1.clone()).unwrap());
         }
 
         let the_headers = wrap::WrappedCell::pad_row(pre_headers);
@@ -149,7 +149,7 @@ impl Table {
         for d in &data {
             let mut row_of_data = Vec::new();
             for (i,dd) in d.iter().enumerate() {
-                row_of_data.push(wrap::WrappedCell::wrap_str(the_headers[i].width,dd).unwrap());
+                row_of_data.push(wrap::WrappedCell::wrap_str(the_headers[i].width,String::from(dd)).unwrap());
             }
             the_data.push(wrap::WrappedCell::pad_row(row_of_data));
         }
@@ -164,10 +164,13 @@ impl Table {
 #[test]
 fn test_format_headers() {
     let t = Table::make(
-        vec![(None,"header 1"), (None,"header 2"), (None,"very long header very very long")],
+        vec![(None,String::from("header 1")), (None,String::from("header 2")), 
+        (None,String::from("very long header very very long"))],
         vec![
-            vec!["some content here", "c", "more row 1 content"],
-            vec!["this is a second row of data", "yeah", "very short"]
+            vec![String::from("some content here"), String::from("c"), 
+            String::from("more row 1 content")],
+            vec![String::from("this is a second row of data"), String::from("yeah"), 
+            String::from("very short")]
         ]
     );
     t.draw(themes::Theme::heavy());
