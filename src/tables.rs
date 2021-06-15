@@ -92,11 +92,17 @@ impl Table {
         )
     }
 
-    pub fn make(hs: Vec<(usize,&str)>,data: Vec<Vec<&str>>) -> Table {
+    pub fn make(hs: Vec<(Option<usize>,&str)>,data: Vec<Vec<&str>>) -> Table {
         let mut pre_headers = Vec::new();
 
         for h in &hs {
-            pre_headers.push(wrap::WrappedCell::wrap_str(h.0,h.1).unwrap());
+            let mut w = 0;
+            match h.0 {
+                None => w = h.1.len(),
+                Some(n) => w = n,
+            }
+
+            pre_headers.push(wrap::WrappedCell::wrap_str(w,h.1).unwrap());
         }
 
         let the_headers = wrap::WrappedCell::pad_row(pre_headers);
@@ -121,7 +127,7 @@ impl Table {
 #[test]
 fn test_format_headers() {
     let t = Table::make(
-        vec![(5,"header 1"), (7,"header 2"), (10,"very long header very very long")],
+        vec![(None,"header 1"), (None,"header 2"), (None,"very long header very very long")],
         vec![
             vec!["some content here", "c", "more row 1 content"],
             vec!["this is a second row of data", "yeah", "very short"]
