@@ -1,6 +1,6 @@
-mod tables;
-mod wrap;
-mod themes;
+pub mod tables;
+pub mod wrap;
+pub mod themes;
 
 #[cfg(test)]
 mod tests {
