@@ -7,39 +7,56 @@ pub struct WrappedCell {
 }
 
 impl WrappedCell {
-    pub fn wrap(w: usize, s: &str) -> WrappedCell {
-        let mut l_line_so_far = 0;
+    // Break a string up into multiple lines and pad it appropriately
+    // with spaces
+    // Parameters:
+    // w: how long you want the WrappedCell to be (where to split)
+    // s: what you want to put in a WrappedCell
+    // Returns: a WrappedCell with content s and width w
+    pub fn wrap_str(w: usize, s: &str) -> Result<WrappedCell,&'static str> {
+        // edge case
+        if w <= 0 {
+            return Err(
+                format!("The width you gave ({}) was invalid. \
+                Choose one >=0.",w)
+            )
+        }
 
+        let mut len_line_so_far = 0;
         let mut wrapped_str = s.chars()
             .enumerate()
             .fold(
                 String::new(),
                 |acc, (i,c)| {
                     if i != 0 && (i % w == 0) {
-                        l_line_so_far = 1;
+                        len_line_so_far = 1;
                         format!("{}\n{}", acc, c)
                     } else {
-                        l_line_so_far += 1;
+                        len_line_so_far += 1;
                         format!("{}{}", acc, c)
                     }
                 }
             );
         
-        wrapped_str += &(0..(w-l_line_so_far)).map(|_| " ").collect::<String>();
+        wrapped_str += &(0..(w-len_line_so_far)).map(|_| " ").collect::<String>();
 
         let mut height = s.len() / w;
         if s.len() % w != 0 {
             height += 1;
         }
 
-        WrappedCell {
+        Ok(WrappedCell {
             width: w,
             height,
             content: wrapped_str,
-        }
+        })
     }
 
-    pub fn format_headers(hs: Vec<WrappedCell>) -> Vec<WrappedCell> {
+    // Given a row (vector) of WrappedCell(s), pad each appropriately
+    // so that they are printed evenly even if they may have different
+    // lengths. I.e., pad each cell in the row according to the size of
+    // the largest cell 
+    pub fn pad_row(hs: Vec<WrappedCell>) -> Vec<WrappedCell> {
         let mut max_height = 0;
         for h in &hs {
             if h.height > max_height {
@@ -66,4 +83,27 @@ impl WrappedCell {
 
         formatted
     }
+}
+
+///////////
+// TESTS //
+///////////
+
+#[test]
+fn wrap_str_test() {
+    // perfect width alignment (no padding necessary)
+    assert_eq!(
+        WrappedCell::wrap_str(9, "happy boy").unwrap().content,
+        String::from("happy boy")
+    );
+
+    // needs some padding at the end
+    assert_eq!(
+        WrappedCell::wrap_str(10, "Mary had a little lamb!").unwrap().content,
+        String::from(
+            "Mary had a\
+            \n little la\
+            \nmb!       "
+        )
+    );
 }

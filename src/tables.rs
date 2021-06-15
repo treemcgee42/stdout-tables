@@ -105,19 +105,19 @@ impl Table {
         let mut pre_headers = Vec::new();
 
         for h in &hs {
-            pre_headers.push(wrap::WrappedCell::wrap(h.0,h.1));
+            pre_headers.push(wrap::WrappedCell::wrap_str(h.0,h.1).unwrap());
         }
 
-        let the_headers = wrap::WrappedCell::format_headers(pre_headers);
+        let the_headers = wrap::WrappedCell::pad_row(pre_headers);
 
         let mut the_data = Vec::new();
 
         for d in &data {
             let mut row_of_data = Vec::new();
             for (i,dd) in d.iter().enumerate() {
-                row_of_data.push(wrap::WrappedCell::wrap(the_headers[i].width,dd));
+                row_of_data.push(wrap::WrappedCell::wrap_str(the_headers[i].width,dd).unwrap());
             }
-            the_data.push(wrap::WrappedCell::format_headers(row_of_data));
+            the_data.push(wrap::WrappedCell::pad_row(row_of_data));
         }
 
         Table {
