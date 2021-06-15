@@ -1,5 +1,6 @@
 mod tables;
 mod wrap;
+mod themes;
 
 #[cfg(test)]
 mod tests {

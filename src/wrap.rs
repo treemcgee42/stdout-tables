@@ -16,10 +16,7 @@ impl WrappedCell {
     pub fn wrap_str(w: usize, s: &str) -> Result<WrappedCell,&'static str> {
         // edge case
         if w <= 0 {
-            return Err(
-                format!("The width you gave ({}) was invalid. \
-                Choose one >=0.",w)
-            )
+            return Err("The width you gave was invalid.");
         }
 
         let mut len_line_so_far = 0;

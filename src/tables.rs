@@ -1,4 +1,5 @@
 use crate::wrap;
+use crate::themes;
 
 #[derive(Debug)]
 pub struct Table {
@@ -7,25 +8,27 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn draw(&self) {
+    pub fn draw(&self, theme: themes::Theme) {
         let ws = &self.headers.iter().map(|wcell| wcell.width).collect::<Vec<_>>();
 
-        println!("{}",Table::table_top_row(ws));
+        println!("{}",Table::table_top_border(ws,&theme));
 
-        Table::draw_helper(&self.headers);
-        println!("{}", Table::row_sep(ws));
+        // draw the column headers
+        Table::draw_row(&self.headers, theme.VERTICAL_BORDER);
+        println!("{}", Table::table_row_sep(ws,&theme));
 
         for (i,d) in self.data.iter().enumerate() {
-            Table::draw_helper(d);
+            // draw each row of data
+            Table::draw_row(d, theme.VERTICAL_BORDER);
             if i != self.data.len()-1 {
-                println!("{}",Table::row_sep(ws));
+                println!("{}",Table::table_row_sep(ws,&theme));
             }
         }
 
-        println!("{}", Table::table_bottom_row(ws));
+        println!("{}", Table::table_bottom_border(ws,&theme));
     }
 
-    fn draw_helper(v: &Vec<wrap::WrappedCell>) {
+    fn draw_row(v: &Vec<wrap::WrappedCell>, vert_border: char) {
         let split_headers = v.iter()
             .map(|s| s.content.split('\n').collect::<Vec<_>>())
             .collect::<Vec<_>>();
@@ -33,72 +36,60 @@ impl Table {
         for j in 0..split_headers[0].len() {
             let mut to_draw = String::new();
             for i in &split_headers {
-                to_draw += "┃";
+                to_draw += &vert_border.to_string();
                 to_draw += i[j];
             }
-            to_draw += "┃";
+            to_draw += &vert_border.to_string();
             println!("{}",to_draw);
         }
     }
 
-    fn table_top_row(col_widths: &Vec<usize>) -> String {
+    fn table_row_border(
+        col_widths: &Vec<usize>, 
+        left: char, center: char, right: char,
+        horiz_border: char
+    ) -> String {
         let mut to_print = String::new();
 
         for (i,cw) in col_widths.iter().enumerate() {
             if i==0 {
-                to_print += "┏";
-                to_print += &(0..*cw).map(|_| "━").collect::<String>();
+                to_print += &left.to_string();
+                to_print += &(0..*cw).map(|_| &horiz_border).collect::<String>();
             } else if i==col_widths.len()-1 {
-                to_print += "┳";
-                to_print += &(0..*cw).map(|_| "━").collect::<String>();
-                to_print += "┓";
+                to_print += &center.to_string();
+                to_print += &(0..*cw).map(|_| &horiz_border).collect::<String>();
+                to_print += &right.to_string();
             } else {
-                to_print += "┳";
-                to_print += &(0..*cw).map(|_| "━").collect::<String>();
+                to_print += &center.to_string();
+                to_print += &(0..*cw).map(|_| &horiz_border).collect::<String>();
             }
         }
 
         to_print
     }
 
-    fn table_bottom_row(col_widths: &Vec<usize>) -> String {
-        let mut to_print = String::new();
-
-        for (i,cw) in col_widths.iter().enumerate() {
-            if i==0 {
-                to_print += "┗";
-                to_print += &(0..*cw).map(|_| "━").collect::<String>();
-            } else if i==col_widths.len()-1 {
-                to_print += "┻";
-                to_print += &(0..*cw).map(|_| "━").collect::<String>();
-                to_print += "┛";
-            } else {
-                to_print += "┻";
-                to_print += &(0..*cw).map(|_| "━").collect::<String>();
-            }
-        }
-
-        to_print
+    fn table_top_border(col_widths: &Vec<usize>, theme: &themes::Theme) -> String {
+        Table::table_row_border(
+            col_widths, 
+            theme.TOP_LEFT_CORNER, theme.TOP_CENTER, theme.TOP_RIGHT_CORNER, 
+            theme.HORIZONTAL_BORDER
+        )
     }
 
-    fn row_sep(col_widths: &Vec<usize>) -> String {
-        let mut to_print = String::new();
+    fn table_bottom_border(col_widths: &Vec<usize>, theme: &themes::Theme) -> String {
+        Table::table_row_border(
+            col_widths, 
+            theme.BOTTOM_LEFT_CORNER, theme.BOTTOM_CENTER, theme.BOTTOM_RIGHT_CORNER, 
+            theme.HORIZONTAL_BORDER
+        )
+    }
 
-        for (i,cw) in col_widths.iter().enumerate() {
-            if i==0 {
-                to_print += "┣";
-                to_print += &(0..*cw).map(|_| "━").collect::<String>();
-            } else if i==col_widths.len()-1 {
-                to_print += "╋";
-                to_print += &(0..*cw).map(|_| "━").collect::<String>();
-                to_print += "┫";
-            } else {
-                to_print += "╋";
-                to_print += &(0..*cw).map(|_| "━").collect::<String>();
-            }
-        }
-
-        to_print
+    fn table_row_sep(col_widths: &Vec<usize>, theme: &themes::Theme) -> String {
+        Table::table_row_border(
+            col_widths, 
+            theme.MIDDLE_LEFT, theme.MIDDLE_CENTER, theme.MIDDLE_RIGHT, 
+            theme.HORIZONTAL_BORDER
+        )
     }
 
     pub fn make(hs: Vec<(usize,&str)>,data: Vec<Vec<&str>>) -> Table {
@@ -129,20 +120,6 @@ impl Table {
 
 #[test]
 fn test_format_headers() {
-    // let unformatted = vec![
-    //     Wrap::WrappedCell::wrap(5,"my dear friend rooney"),
-    //     Wrap::WrappedCell::wrap(5,"i really like that girl"),
-    //     Wrap::WrappedCell::wrap(5,"to be")
-    // ];
-    // let t = Table {
-    //     headers: Wrap::WrappedCell::format_headers(unformatted),
-    //     data: Vec::new(),
-    // };
-
-    // println!("{:?}",t);
-    // Table::draw(&t);
-    // assert_eq!(2+2,5);
-
     let t = Table::make(
         vec![(5,"header 1"), (7,"header 2"), (10,"very long header very very long")],
         vec![
@@ -150,5 +127,5 @@ fn test_format_headers() {
             vec!["this is a second row of data", "yeah", "very short"]
         ]
     );
-    t.draw();
+    t.draw(themes::Theme::heavy());
 }
