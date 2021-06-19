@@ -97,7 +97,7 @@ impl WrappedCell {
             let width = h.width;
             let mut content = h.content.clone();
             if h.height < max_height {
-                for i in 0..(max_height-h.height) {
+                for _ in 0..(max_height-h.height) {
                     content += &format!(
                         "\n{}",
                         (0..h.width).map(|_| " ").collect::<String>()

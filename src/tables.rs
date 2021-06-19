@@ -147,7 +147,7 @@ impl Table {
         let mut pre_headers = Vec::new();
 
         for h in &headers {
-            let mut w = 0;
+            let w;
             match h.0 {
                 None => w = h.1.len(),
                 Some(n) => w = n,
