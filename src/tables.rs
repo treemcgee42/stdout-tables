@@ -20,23 +20,27 @@ impl Table {
     /// 
     /// * `theme` - the `Theme` to use when drawing the table
     pub fn draw(&self, theme: themes::Theme) {
-        let ws = &self.headers.iter().map(|wcell| wcell.width).collect::<Vec<_>>();
+        let column_widths = &self.headers.iter()
+                                .map(|wcell| wcell.width)
+                                .collect::<Vec<_>>();
 
-        println!("{}",Table::table_top_border(ws,&theme));
+        // draw top border
+        println!("{}",Table::table_top_border(column_widths,&theme));
 
         // draw the column headers
         Table::draw_row(&self.headers, theme.vertical_border, theme.internal_vertical);
-        println!("{}", Table::table_row_sep(ws,&theme));
+        println!("{}", Table::table_row_sep(column_widths,&theme));
 
+        // draw the rows of data
         for (i,d) in self.data.iter().enumerate() {
-            // draw each row of data
             Table::draw_row(d, theme.vertical_border, theme.internal_vertical);
             if i != self.data.len()-1 {
-                println!("{}",Table::table_row_sep(ws,&theme));
+                println!("{}",Table::table_row_sep(column_widths,&theme));
             }
         }
 
-        println!("{}", Table::table_bottom_border(ws,&theme));
+        // draw bottom border
+        println!("{}", Table::table_bottom_border(column_widths,&theme));
     }
 
     fn draw_row(v: &Vec<wrap::WrappedCell>, vert_border: char, internal_vert: char) {
@@ -106,6 +110,27 @@ impl Table {
             theme.middle_left, theme.middle_center, theme.middle_right, 
             theme.internal_horizontal
         )
+    }
+
+    /// Numbers the entries of the table.
+    /// 
+    /// Creates a new column and inserts an entry into each row of data with their 
+    /// index in the table.
+    /// 
+    /// # Examples
+    /// 
+    /// ```
+    /// use stdout_tables::tables::Table;
+    /// 
+    /// let mut t = Table::make(Vec::new(), Vec::new());
+    /// t.number();
+    /// ```
+    pub fn number(&mut self) {
+        self.headers.insert(0, wrap::WrappedCell::wrap_str(3, String::from("#")).unwrap());
+
+        for i in 0..self.data.len() {
+            self.data.get_mut(i).unwrap().insert(0, wrap::WrappedCell::wrap_str(3, i.to_string()).unwrap());
+        }
     }
 
     /// A way to create a table from `String`s
@@ -235,11 +260,12 @@ fn test_format_headers() {
 
 #[test]
 fn test_from_string_vec() {
-    let t = Table::from_string_vec(
+    let mut t = Table::from_string_vec(
         vec![
             String::from("col 1"), String::from("col 2"), String::from("col 3"),
             String::from("r11"), String::from("r12"), String::from("r13"),
             String::from("r21"), String::from("r22"), String::from("r23")
         ], 3, None).unwrap();
+    t.number();
     t.draw(themes::Theme::heavy().borderless());
 }
