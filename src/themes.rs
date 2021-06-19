@@ -7,20 +7,22 @@
 /// How themes will be represented.
 pub struct Theme {
     // top row of table
-    pub TOP_LEFT_CORNER: char,
-    pub TOP_CENTER: char,
-    pub TOP_RIGHT_CORNER: char,
+    pub top_left_corner: char,
+    pub top_center: char,
+    pub top_right_corner: char,
     // rows excluding top and bottom
-    pub MIDDLE_LEFT: char,
-    pub MIDDLE_CENTER: char,
-    pub MIDDLE_RIGHT: char,
+    pub middle_left: char,
+    pub middle_center: char,
+    pub middle_right: char,
     // bottom row of table
-    pub BOTTOM_LEFT_CORNER: char,
-    pub BOTTOM_CENTER: char,
-    pub BOTTOM_RIGHT_CORNER: char,
+    pub bottom_left_corner: char,
+    pub bottom_center: char,
+    pub bottom_right_corner: char,
     // other border stuff
-    pub HORIZONTAL_BORDER: char,
-    pub VERTICAL_BORDER: char,
+    pub horizontal_border: char,
+    pub vertical_border: char,
+    pub internal_horizontal: char,
+    pub internal_vertical: char,
 }
 
 /// This is where/how the pre-implemented `Theme`s are defined.
@@ -29,20 +31,41 @@ pub struct Theme {
 impl Theme {
     pub fn heavy() -> Theme {
         Theme {
-            TOP_LEFT_CORNER: '┏',
-            TOP_CENTER: '┳',
-            TOP_RIGHT_CORNER: '┓',
+            top_left_corner: '┏',
+            top_center: '┳',
+            top_right_corner: '┓',
 
-            MIDDLE_LEFT: '┣',
-            MIDDLE_CENTER: '╋',
-            MIDDLE_RIGHT: '┫',
+            middle_left: '┣',
+            middle_center: '╋',
+            middle_right: '┫',
 
-            BOTTOM_LEFT_CORNER: '┗',
-            BOTTOM_CENTER: '┻',
-            BOTTOM_RIGHT_CORNER: '┛',
+            bottom_left_corner: '┗',
+            bottom_center: '┻',
+            bottom_right_corner: '┛',
 
-            HORIZONTAL_BORDER: '━',
-            VERTICAL_BORDER: '┃',
+            horizontal_border: '━',
+            vertical_border: '┃',
+            internal_horizontal: '━',
+            internal_vertical: '┃',
+        }
+    }
+
+    pub fn borderless(&self) -> Theme {
+        Theme {
+            top_left_corner: '\0',
+            top_center: '\0',
+            top_right_corner: '\0',
+
+            middle_left: '\0',
+            middle_right: '\0',
+
+            bottom_left_corner: '\0',
+            bottom_center: '\0',
+            bottom_right_corner: '\0',
+
+            horizontal_border: '\0',
+            vertical_border: '\0',
+            ..*self
         }
     }
 }

@@ -33,11 +33,11 @@ impl WrappedCell {
     /// # Examples
     /// 
     /// ```
-    /// use tables::wrap;
+    /// use stdout_tables::wrap::WrappedCell;
     /// 
     /// // The resulting content  field will be:
     /// // "Mary \nhad a\n litt\nle la\nb!   "
-    /// let wc1: WrappedCell = wrap_str(5, String::from("Mary had a little lamb!"))
+    /// let wc1: WrappedCell = WrappedCell::wrap_str(5, String::from("Mary had a little lamb!"))
     ///     .unwrap();
     /// ```
     pub fn wrap_str(w: usize, s: String) -> Result<WrappedCell,&'static str> {

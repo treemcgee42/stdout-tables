@@ -3,6 +3,9 @@
 use crate::wrap;
 use crate::themes;
 
+use std::error::Error;
+use std::fmt;
+
 /// The representation of a table
 #[derive(Debug)]
 pub struct Table {
@@ -22,12 +25,12 @@ impl Table {
         println!("{}",Table::table_top_border(ws,&theme));
 
         // draw the column headers
-        Table::draw_row(&self.headers, theme.VERTICAL_BORDER);
+        Table::draw_row(&self.headers, theme.vertical_border, theme.internal_vertical);
         println!("{}", Table::table_row_sep(ws,&theme));
 
         for (i,d) in self.data.iter().enumerate() {
             // draw each row of data
-            Table::draw_row(d, theme.VERTICAL_BORDER);
+            Table::draw_row(d, theme.vertical_border, theme.internal_vertical);
             if i != self.data.len()-1 {
                 println!("{}",Table::table_row_sep(ws,&theme));
             }
@@ -36,16 +39,21 @@ impl Table {
         println!("{}", Table::table_bottom_border(ws,&theme));
     }
 
-    fn draw_row(v: &Vec<wrap::WrappedCell>, vert_border: char) {
+    fn draw_row(v: &Vec<wrap::WrappedCell>, vert_border: char, internal_vert: char) {
         let split_headers = v.iter()
             .map(|s| s.content.split('\n').collect::<Vec<_>>())
             .collect::<Vec<_>>();
 
         for j in 0..split_headers[0].len() {
             let mut to_draw = String::new();
-            for i in &split_headers {
-                to_draw += &vert_border.to_string();
-                to_draw += i[j];
+            for (ind,i) in split_headers.iter().enumerate() {
+                if ind==0 { 
+                    to_draw += &vert_border.to_string(); 
+                    to_draw += i[j];
+                } else {
+                    to_draw += &internal_vert.to_string();
+                    to_draw += i[j];
+                }
             }
             to_draw += &vert_border.to_string();
             println!("{}",to_draw);
@@ -79,28 +87,28 @@ impl Table {
     fn table_top_border(col_widths: &Vec<usize>, theme: &themes::Theme) -> String {
         Table::table_row_border(
             col_widths, 
-            theme.TOP_LEFT_CORNER, theme.TOP_CENTER, theme.TOP_RIGHT_CORNER, 
-            theme.HORIZONTAL_BORDER
+            theme.top_left_corner, theme.top_center, theme.top_right_corner, 
+            theme.horizontal_border
         )
     }
 
     fn table_bottom_border(col_widths: &Vec<usize>, theme: &themes::Theme) -> String {
         Table::table_row_border(
             col_widths, 
-            theme.BOTTOM_LEFT_CORNER, theme.BOTTOM_CENTER, theme.BOTTOM_RIGHT_CORNER, 
-            theme.HORIZONTAL_BORDER
+            theme.bottom_left_corner, theme.bottom_center, theme.bottom_right_corner, 
+            theme.horizontal_border
         )
     }
 
     fn table_row_sep(col_widths: &Vec<usize>, theme: &themes::Theme) -> String {
         Table::table_row_border(
             col_widths, 
-            theme.MIDDLE_LEFT, theme.MIDDLE_CENTER, theme.MIDDLE_RIGHT, 
-            theme.HORIZONTAL_BORDER
+            theme.middle_left, theme.middle_center, theme.middle_right, 
+            theme.internal_horizontal
         )
     }
 
-    /// A way to create a table from `&str`s
+    /// A way to create a table from `String`s
     /// 
     /// # Arguments
     /// 
@@ -115,17 +123,23 @@ impl Table {
     /// # Examples
     /// 
     /// ```
-    /// use stdout-tables::tables;
+    /// use stdout_tables::tables::Table;
     /// 
     /// let t: Table = Table::make(
     ///     vec![
-    ///         (None, "first column"), 
-    ///         (Some(7), "second column"),
-    ///         (Some(10), "this is a third column")
+    ///         (None, String::from("first column")), 
+    ///         (Some(7), String::from("second column")),
+    ///         (Some(10), String::from("this is a third column"))
     ///     ],
     ///     vec![
-    ///         "first entry", "second entry", "third entry",
-    ///         "first-first entry", "second-second entry", "third-third entry"
+    ///         vec![
+    ///             String::from("first entry"), String::from("second entry"), 
+    ///             String::from("third entry")
+    ///         ],
+    ///         vec![
+    ///             String::from("first-first entry"), String::from("second-second entry"), 
+    ///             String::from("third-third entry")
+    ///         ]
     ///     ]
     /// );
     /// ```
@@ -159,6 +173,49 @@ impl Table {
             data: the_data,
         }
     }
+
+    pub fn from_string_vec(
+        input_vector: Vec<String>, number_of_columns: usize, column_widths: Option<Vec<usize>>
+    ) -> Result<Table,DimensionError> {
+        if input_vector.len() % number_of_columns != 0 {
+            return Err(DimensionError)
+        }
+
+        let pre_headers = input_vector[0..number_of_columns].iter().enumerate()
+                            .map(|(i,s)| {
+                                wrap::WrappedCell::wrap_str(match &column_widths {
+                                    None => 10,
+                                    Some(v) => v[i],
+                                }, s.clone()).unwrap()
+                            })
+                            .collect::<Vec<_>>();
+        let headers = wrap::WrappedCell::pad_row(pre_headers);
+
+        let mut data = Vec::new();
+        let mut row_of_data = Vec::new();
+        for (i,d) in input_vector[number_of_columns..].iter().enumerate() {
+            row_of_data.push(wrap::WrappedCell::wrap_str(headers[i%number_of_columns].width, d.clone()).unwrap());
+            if (i+1) % number_of_columns == 0 {
+                data.push(wrap::WrappedCell::pad_row(row_of_data));
+                row_of_data = Vec::new();
+            }
+        }
+
+        Ok(Table { headers, data })
+    }
+}
+
+#[derive(Debug)]
+pub struct DimensionError;
+impl fmt::Display for DimensionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Dimension mismatch!")
+    }
+}
+impl Error for DimensionError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
 }
 
 #[test]
@@ -174,4 +231,15 @@ fn test_format_headers() {
         ]
     );
     t.draw(themes::Theme::heavy());
+}
+
+#[test]
+fn test_from_string_vec() {
+    let t = Table::from_string_vec(
+        vec![
+            String::from("col 1"), String::from("col 2"), String::from("col 3"),
+            String::from("r11"), String::from("r12"), String::from("r13"),
+            String::from("r21"), String::from("r22"), String::from("r23")
+        ], 3, None).unwrap();
+    t.draw(themes::Theme::heavy().borderless());
 }
